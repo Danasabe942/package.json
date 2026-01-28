@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pi Test App</title>
+
+  <!-- Pi SDK MUST be inside <head> -->
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <script>
+    Pi.init({ version: "2.0", sandbox: true });
+
+    async function payWithPi() {
+      try {
+        const payment = await Pi.createPayment({
+          amount: 1,
+          memo: "Test payment",
+          metadata: { productId: "test-001" }
+        }, {
+          onReadyForServerApproval: function (paymentId) {
+            // SEND paymentId to backend
+            fetch("https://YOUR-BACKEND-URL/approve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId })
+            });
+          },
+          onReadyForServerCompletion: function (paymentId, txid) {
+            fetch("https://YOUR-BACKEND-URL/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId, txid })
+            });
+          },
+          onCancel: function () {
+            alert("Payment cancelled");
+          },
+          onError: function (error) {
+            console.error(error);
+          }
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <h2>Pi Test Payment</h2>
+  <button onclick="payWithPi()">Pay with Pi</button>
+</body>
+</html>
+
